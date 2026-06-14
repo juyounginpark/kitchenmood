@@ -22,6 +22,15 @@
 import { listen, addItem, submitProposal, formObj } from './data.js';
 
 function show(id){const el=document.getElementById(id);el.style.display='block';setTimeout(()=>el.style.display='none',2500)}
+// 제출 성공 시 버튼을 초록 "완료"로 바꿨다가 2초 뒤 원래대로
+function flashDone(form,msg){
+  const btn=form.querySelector('button[type="submit"]')||form.querySelector('button');
+  if(!btn||btn.dataset.busy)return;
+  btn.dataset.busy='1';
+  const t=btn.textContent,bg=btn.style.background,fg=btn.style.color;
+  btn.textContent=msg; btn.style.background='#067647'; btn.style.color='#fff';
+  setTimeout(()=>{ btn.textContent=t; btn.style.background=bg; btn.style.color=fg; delete btn.dataset.busy; },2000);
+}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
 // 연락처 입력 시 010-xxxx-xxxx 자동 하이픈 (형식 미달이면 pattern 으로 제출 차단)
@@ -85,7 +94,7 @@ function renderDailyList(){
 document.getElementById('reservationForm').onsubmit=async e=>{
   e.preventDefault();
   const o=formObj(e.target); o.status='예약대기';
-  try{ await addItem('reservations',o); show('reservationAlert'); e.target.reset(); }
+  try{ await addItem('reservations',o); show('reservationAlert'); e.target.reset(); flashDone(e.target,'예약 완료 ✓'); }
   catch(err){ alert('저장 중 오류가 발생했습니다: '+(err.message||err)); }
 };
 
@@ -93,7 +102,7 @@ document.getElementById('reservationForm').onsubmit=async e=>{
 document.getElementById('partnerForm').onsubmit=async e=>{
   e.preventDefault();
   const o=formObj(e.target); o.code=''; o.status='승인대기';
-  try{ await addItem('partners',o); show('partnerAlert'); e.target.reset(); }
+  try{ await addItem('partners',o); show('partnerAlert'); e.target.reset(); flashDone(e.target,'신청 완료 ✓'); }
   catch(err){ alert('저장 중 오류가 발생했습니다: '+(err.message||err)); }
 };
 
@@ -102,7 +111,7 @@ document.getElementById('proposalForm').onsubmit=async e=>{
   e.preventDefault();
   const o=formObj(e.target);
   if(!o.bidId){ alert('현재 참여 가능한 입찰공고가 없습니다. 입찰공고가 등록된 후 신청해 주세요.'); return; }
-  try{ await submitProposal(o); show('bidAlert'); e.target.reset(); }
+  try{ await submitProposal(o); show('bidAlert'); e.target.reset(); flashDone(e.target,'제출 완료 ✓'); }
   catch(err){ alert(err.message||'입찰 제출에 실패했습니다.'); }
 };
 
@@ -110,7 +119,7 @@ document.getElementById('proposalForm').onsubmit=async e=>{
 document.getElementById('reportForm').onsubmit=async e=>{
   e.preventDefault();
   const o=formObj(e.target); o.status='작성대기';
-  try{ await addItem('reports',o); show('reportAlert'); e.target.reset(); }
+  try{ await addItem('reports',o); show('reportAlert'); e.target.reset(); flashDone(e.target,'신청 완료 ✓'); }
   catch(err){ alert('저장 중 오류가 발생했습니다: '+(err.message||err)); }
 };
 </script></body></html>
