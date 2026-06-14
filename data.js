@@ -33,9 +33,9 @@ export function listen(table, cb) {
 
 // ── 쓰기 ────────────────────────────────────────────────────
 export async function addItem(table, obj) {
-  const { data, error } = await sb.from(table).insert(obj).select("id").single();
+  // .select() 로 되읽지 않음 — 고객(anon)은 읽기 권한이 없어 되읽기 단계에서 실패하기 때문
+  const { error } = await sb.from(table).insert(obj);
   if (error) throw error;
-  return data.id;
 }
 export async function updateItem(table, id, patch) {
   const { error } = await sb.from(table).update(patch).eq("id", id);
