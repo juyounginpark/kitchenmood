@@ -161,6 +161,19 @@ export async function getBackup(id) {
   return data;
 }
 
+// ── 환경설정(보관 정책 등) ───────────────────────────────────
+export async function getSettings() {
+  const { data, error } = await sb.from("settings").select("key, value");
+  if (error) throw error;
+  const o = {}; (data || []).forEach(r => { o[r.key] = r.value; });
+  return o;
+}
+export async function setSetting(key, value) {
+  const { error } = await sb.from("settings")
+    .upsert({ key, value: String(value), updated_at: new Date().toISOString() });
+  if (error) throw error;
+}
+
 // 현재 데이터를 전부 지우고 주어진 스냅샷으로 덮어씀
 async function overwriteAll(data) {
   for (const t of BACKUP_TABLES) {
