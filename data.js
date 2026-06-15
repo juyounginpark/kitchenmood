@@ -161,11 +161,8 @@ export async function getBackup(id) {
   return data;
 }
 
-// 백업으로 복원 — 현재 데이터를 전부 지우고 백업 내용으로 덮어씀
-export async function restoreBackup(id) {
-  const { data: row, error } = await sb.from("backups").select("data").eq("id", id).single();
-  if (error) throw error;
-  const data = row.data || {};
+// 현재 데이터를 전부 지우고 주어진 스냅샷으로 덮어씀
+async function overwriteAll(data) {
   for (const t of BACKUP_TABLES) {
     const { error: delErr } = await sb.from(t).delete().neq("id", NIL_UUID);
     if (delErr) throw delErr;
@@ -175,6 +172,22 @@ export async function restoreBackup(id) {
       if (insErr) throw insErr;
     }
   }
+}
+
+// DB에 저장된 백업으로 복원
+export async function restoreBackup(id) {
+  const { data: row, error } = await sb.from("backups").select("data").eq("id", id).single();
+  if (error) throw error;
+  await overwriteAll(row.data || {});
+}
+
+// 업로드한 JSON 데이터로 복원 (형식 검증 후 덮어쓰기)
+export async function restoreFromData(data) {
+  if (!data || typeof data !== "object") throw new Error("올바른 백업 파일이 아닙니다.");
+  for (const t of BACKUP_TABLES) {
+    if (!Array.isArray(data[t])) throw new Error(`올바른 백업 파일이 아닙니다. (${t} 항목 누락)`);
+  }
+  await overwriteAll(data);
 }
 
 // ── 폼 → 객체 ───────────────────────────────────────────────

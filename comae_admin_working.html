@@ -27,9 +27,10 @@
 <hr style="margin:22px 0;border:0;border-top:1px solid var(--line)">
 <h3 style="margin-bottom:8px">JSON 내보내기 / 초기화</h3>
 <button onclick="exportData()">JSON 백업 복사</button><button onclick="downloadCurrent()">⬇ 현재 데이터 다운로드</button><button class="danger" onclick="clearData()">전체 데이터 삭제</button>
+<div style="margin-top:14px"><label>JSON 파일에서 복원 (업로드)</label><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="file" id="restoreFile" accept="application/json,.json" style="max-width:340px"><button onclick="restoreFromFile()">📂 파일 불러오기 (복원)</button></div></div>
 <textarea id="backupText" style="margin-top:12px;min-height:180px;width:100%" placeholder="백업 데이터가 여기에 표시됩니다."></textarea></section>
 </main><script type="module">
-import { listen, addItem, updateItem, removeItem as dbRemove, uploadPhotos, login, logout, onAuth, myAdminRole, saveBackup, listBackups, restoreBackup, deleteBackup, getBackup, formObj } from './data.js';
+import { listen, addItem, updateItem, removeItem as dbRemove, uploadPhotos, login, logout, onAuth, myAdminRole, saveBackup, listBackups, restoreBackup, restoreFromData, deleteBackup, getBackup, formObj } from './data.js';
 
 // 컬렉션별 실시간 캐시
 const cache={reservations:[],partners:[],bids:[],proposals:[],daily:[],reports:[]};
@@ -275,6 +276,18 @@ window.downloadBackup=async()=>{
 window.downloadCurrent=()=>{
   const d=new Date(),p=n=>String(n).padStart(2,'0');
   downloadJSON(cache, `comae_data_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}.json`);
+};
+window.restoreFromFile=async()=>{
+  const inp=document.getElementById('restoreFile');
+  const f=inp&&inp.files&&inp.files[0];
+  if(!f){ alert('복원할 JSON 파일을 선택하세요.'); return; }
+  let data;
+  try{ data=JSON.parse(await f.text()); }
+  catch(e){ alert('JSON 파일을 읽을 수 없습니다: '+(e.message||e)); return; }
+  if(!confirm('⚠️ 현재 모든 데이터를 이 파일로 덮어씁니다.\n현재 데이터는 사라지고 복구할 수 없습니다. 계속할까요?')) return;
+  if(!confirm('한 번 더 확인합니다. 정말 이 파일로 덮어쓸까요?')) return;
+  try{ await restoreFromData(data); alert('파일에서 데이터를 복원했습니다.'); inp.value=''; }
+  catch(e){ alert('복원 실패: '+(e.message||e)); }
 };
 window.restoreBackupNow=async()=>{
   const sel=document.getElementById('backupList'); const id=sel&&sel.value;
