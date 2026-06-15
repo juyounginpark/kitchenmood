@@ -71,7 +71,7 @@ let lastBids=[], bidQ='';
 listen('bids', bids=>{ lastBids=bids; renderBidList(); });
 function renderBidList(){
   const box=document.getElementById('bidList'), sel=document.getElementById('proposalBidSelect');
-  const open=lastBids.filter(b=>b.status!=='마감');
+  const open=lastBids.filter(b=>b.status!=='마감'&&b.status!=='확정');
   sel.innerHTML=open.map(b=>`<option value="${esc(b.id)}">${esc(b.title)}</option>`).join('');
   const q=bidQ.trim().toLowerCase();
   const shown=q?open.filter(b=>Object.values(b).some(v=>String(v==null?'':v).toLowerCase().includes(q))):open;
