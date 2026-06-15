@@ -44,7 +44,7 @@ export async function updateItem(table, id, patch) {
 export async function removeItem(table, id) {
   const { data, error } = await sb.from(table).delete().eq("id", id).select("id");
   if (error) throw error;
-  if (!data || data.length === 0) throw new Error("삭제 권한이 없거나 항목을 찾을 수 없습니다. (삭제는 사장 계정만 가능)");
+  if (!data || data.length === 0) throw new Error("삭제 권한이 없거나 항목을 찾을 수 없습니다.");
 }
 
 // ── 사진 압축 (업로드 전 용량 절감) ──────────────────────────
