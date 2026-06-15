@@ -13,9 +13,22 @@
 <section id="bidProposals"><h2>공고별 입찰현황</h2><p class="desc">각 입찰공고에 참여한 업체 목록입니다.</p><div id="bidProposalGroups"></div></section>
 <section id="dailyCreate"><h2>일일 공사상황 업로드</h2><div id="dailyAlert" class="alert">일일 공사상황이 저장되었습니다.</div><form id="dailyForm"><div class="grid"><div><label>현장명</label><input name="project" required></div><div><label>작성일</label><input type="date" name="date" required></div><div><label>오늘 공정</label><input name="title"></div><div><label>상태</label><select name="status"><option>정상진행</option><option>지연</option><option>보완필요</option><option>문제발생</option></select></div><div class="full"><label>오늘 작업내용</label><textarea name="memo"></textarea></div><div class="full"><label>현장사진</label><input type="file" id="dailyPhotos" multiple accept="image/*"></div><div class="full"><button type="submit">일일 공사상황 저장</button></div></div></form><br><table><thead><tr><th>날짜</th><th>현장</th><th>공정</th><th>내용</th><th>사진</th><th>상태</th><th>관리</th></tr></thead><tbody id="dailyRows"></tbody></table></section>
 <section id="reports"><h2>집점검·공사시공점검 감리리포트</h2><table><thead><tr><th>종류</th><th>신청자</th><th>연락처</th><th>주소</th><th>내용</th><th>상태</th><th>처리</th></tr></thead><tbody id="reportRows"></tbody></table></section>
-<section id="backup" style="display:none"><h2>데이터 백업 / 초기화</h2><button onclick="exportData()">JSON 백업 복사</button><button class="danger" onclick="clearData()">전체 데이터 삭제</button><textarea id="backupText" style="margin-top:12px;min-height:180px;width:100%" placeholder="백업 데이터가 여기에 표시됩니다."></textarea></section>
+<section id="backup" style="display:none"><h2>데이터 백업 / 초기화</h2>
+<h3 style="margin-bottom:8px">DB 백업 / 복원</h3>
+<p class="desc">현재 전체 데이터를 클라우드 DB에 저장하고, 저장된 시점으로 되돌릴 수 있습니다.</p>
+<button onclick="saveBackupNow()">💾 DB에 백업 저장</button>
+<div style="margin-top:14px"><label>저장된 백업</label>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+<select id="backupList" style="max-width:400px"></select>
+<button onclick="restoreBackupNow()">선택 백업 불러오기 (복원)</button>
+<button class="gray small" onclick="refreshBackups()">목록 새로고침</button>
+</div></div>
+<hr style="margin:22px 0;border:0;border-top:1px solid var(--line)">
+<h3 style="margin-bottom:8px">JSON 내보내기 / 초기화</h3>
+<button onclick="exportData()">JSON 백업 복사</button><button class="danger" onclick="clearData()">전체 데이터 삭제</button>
+<textarea id="backupText" style="margin-top:12px;min-height:180px;width:100%" placeholder="백업 데이터가 여기에 표시됩니다."></textarea></section>
 </main><script type="module">
-import { listen, addItem, updateItem, removeItem as dbRemove, uploadPhotos, login, logout, onAuth, myAdminRole, formObj } from './data.js';
+import { listen, addItem, updateItem, removeItem as dbRemove, uploadPhotos, login, logout, onAuth, myAdminRole, saveBackup, listBackups, restoreBackup, formObj } from './data.js';
 
 // 컬렉션별 실시간 캐시
 const cache={reservations:[],partners:[],bids:[],proposals:[],daily:[],reports:[]};
@@ -210,7 +223,33 @@ function applyRole(role){
   const link=document.querySelector('aside a[href="#backup"]');
   if(sec) sec.style.display = isBoss?'':'none';
   if(link) link.style.display = isBoss?'':'none';
+  if(isBoss) refreshBackups();
 }
+
+// ── DB 백업 / 복원 ─────────────────────────────────────────
+async function refreshBackups(){
+  const sel=document.getElementById('backupList'); if(!sel)return;
+  try{
+    const list=await listBackups();
+    sel.innerHTML=list.length
+      ? list.map(b=>`<option value="${esc(b.id)}">${new Date(b.created_at).toLocaleString()}${b.label?' · '+esc(b.label):''}</option>`).join('')
+      : '<option value="">저장된 백업 없음</option>';
+  }catch(e){ console.error('[refreshBackups]',e); }
+}
+window.refreshBackups=refreshBackups;
+window.saveBackupNow=async()=>{
+  const label=prompt('백업 이름(선택, 비워도 됩니다):')||'';
+  try{ await saveBackup(label); alert('현재 데이터를 DB에 백업했습니다.'); refreshBackups(); }
+  catch(e){ alert('백업 실패: '+(e.message||e)); }
+};
+window.restoreBackupNow=async()=>{
+  const sel=document.getElementById('backupList'); const id=sel&&sel.value;
+  if(!id){ alert('불러올 백업을 선택하세요.'); return; }
+  if(!confirm('⚠️ 현재 모든 데이터를 이 백업으로 덮어씁니다.\n현재 데이터는 사라지고 복구할 수 없습니다. 계속할까요?')) return;
+  if(!confirm('한 번 더 확인합니다. 정말 이 백업으로 덮어쓸까요?')) return;
+  try{ await restoreBackup(id); alert('백업을 불러와 데이터를 복원했습니다.'); }
+  catch(e){ alert('복원 실패: '+(e.message||e)); }
+};
 
 onAuth(user=>{
   if(user){gate.style.display='none';mainEl.style.display='';asideEl.style.display='';startApp();myAdminRole().then(applyRole);}

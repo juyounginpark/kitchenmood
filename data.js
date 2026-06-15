@@ -124,6 +124,46 @@ export async function myAdminRole() {
   return data ? (data.role || "staff") : null;
 }
 
+// ── 백업 / 복원 ──────────────────────────────────────────────
+const BACKUP_TABLES = ["reservations", "partners", "bids", "proposals", "daily", "reports"];
+const NIL_UUID = "00000000-0000-0000-0000-000000000000";
+
+// 현재 전체 데이터를 스냅샷으로 backups 테이블에 저장
+export async function saveBackup(label) {
+  const data = {};
+  for (const t of BACKUP_TABLES) {
+    const { data: rows, error } = await sb.from(t).select("*");
+    if (error) throw error;
+    data[t] = rows || [];
+  }
+  const { error } = await sb.from("backups").insert({ label: label || null, data });
+  if (error) throw error;
+}
+
+// 저장된 백업 목록(데이터 본문 제외)
+export async function listBackups() {
+  const { data, error } = await sb.from("backups")
+    .select("id, created_at, label").order("created_at", { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+// 백업으로 복원 — 현재 데이터를 전부 지우고 백업 내용으로 덮어씀
+export async function restoreBackup(id) {
+  const { data: row, error } = await sb.from("backups").select("data").eq("id", id).single();
+  if (error) throw error;
+  const data = row.data || {};
+  for (const t of BACKUP_TABLES) {
+    const { error: delErr } = await sb.from(t).delete().neq("id", NIL_UUID);
+    if (delErr) throw delErr;
+    const rows = data[t] || [];
+    if (rows.length) {
+      const { error: insErr } = await sb.from(t).insert(rows);
+      if (insErr) throw insErr;
+    }
+  }
+}
+
 // ── 폼 → 객체 ───────────────────────────────────────────────
 export function formObj(form) {
   return Object.fromEntries(new FormData(form).entries());
