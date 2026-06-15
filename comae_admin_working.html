@@ -30,7 +30,7 @@
 <div style="margin-top:14px"><label>JSON 파일에서 복원 (업로드)</label><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input type="file" id="restoreFile" accept="application/json,.json" style="max-width:340px"><button onclick="restoreFromFile()">📂 파일 불러오기 (복원)</button></div></div>
 <textarea id="backupText" style="margin-top:12px;min-height:180px;width:100%" placeholder="백업 데이터가 여기에 표시됩니다."></textarea></section>
 </main><script type="module">
-import { listen, addItem, updateItem, removeItem as dbRemove, uploadPhotos, login, logout, onAuth, myAdminRole, saveBackup, listBackups, restoreBackup, restoreFromData, deleteBackup, getBackup, formObj } from './data.js';
+import { listen, addItem, updateItem, removeItem as dbRemove, uploadPhotos, login, logout, onAuth, myAdminRole, saveBackup, listBackups, restoreBackup, restoreFromData, deleteBackup, getBackup, formObj } from './data.js?v=2';
 
 // 컬렉션별 실시간 캐시
 const cache={reservations:[],partners:[],bids:[],proposals:[],daily:[],reports:[]};

@@ -19,7 +19,7 @@
 <section id="reports"><div class="wrap"><h2>집점검·공사시공점검 감리리포트 신청</h2><div id="reportAlert" class="alert">리포트 신청이 저장되었습니다.</div><form id="reportForm"><div class="form-grid"><div><label>리포트 신청 종류</label><select name="type"><option>입주 전 집점검 리포트</option><option>거주 중 집점검 리포트</option><option>공사 시공점검 감리리포트</option></select></div><div><label>신청자명</label><input name="name" required></div><div><label>연락처</label><input name="phone" type="tel" required pattern="010-\d{4}-\d{4}" maxlength="13" placeholder="010-0000-0000" title="010-0000-0000 형식으로 입력하세요"></div><div><label>점검 주소</label><input name="address"></div><div class="full"><label>점검 요청내용</label><textarea name="memo"></textarea></div><div class="full"><button type="submit">점검·감리 리포트 신청</button></div></div></form></div></section>
 <footer><div class="wrap" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px"><div><b>코스트 매칭 인테리어시스템 COMAE</b><br>전화 010-2325-1617 · 이메일 boss7582@hanmail.net · 홈페이지 www.comae.co.kr</div><a href="comae_admin_working.html" style="font-size:13px;color:#cbd6e5;border:1px solid #2c4a72;padding:8px 16px;border-radius:999px;white-space:nowrap">관리자 페이지 →</a></div></footer>
 <script type="module">
-import { listen, addItem, submitProposal, formObj } from './data.js';
+import { listen, addItem, submitProposal, formObj } from './data.js?v=2';
 
 function show(id){const el=document.getElementById(id);el.style.display='block';setTimeout(()=>el.style.display='none',2500)}
 // 제출 성공 시 버튼을 초록 "완료"로 바꿨다가 2초 뒤 원래대로
