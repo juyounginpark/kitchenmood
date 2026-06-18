@@ -102,6 +102,13 @@ export async function submitProposal(payload) {
   return { ok: true };
 }
 
+// ── 입찰내역 조회 (업체명+고유번호 검증 후 그 업체 제안만 반환) ──
+export async function lookupProposals(company, code) {
+  const { data, error } = await sb.rpc("lookup_proposals", { p_company: company, p_code: code });
+  if (error) throw new Error(error.message || "입찰내역 조회에 실패했습니다.");
+  return data || [];
+}
+
 // ── 관리자 인증 ──────────────────────────────────────────────
 export async function login(email, password) {
   const { error } = await sb.auth.signInWithPassword({ email, password });
