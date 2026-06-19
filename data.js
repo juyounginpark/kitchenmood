@@ -85,6 +85,27 @@ export async function uploadPhotos(folder, fileInput) {
   return urls;
 }
 
+// ── 파일 → 압축된 data URL 배열 (Storage 미사용, DB 직접저장용) ──
+// 협력업체 신청은 익명 고객이 하므로 Storage(관리자 전용) 대신
+// 사진을 압축해 partners 행에 직접 저장한다.
+export async function filesToDataUrls(fileInput, max = 5) {
+  const files = [...(fileInput?.files || [])].slice(0, max);
+  const urls = [];
+  for (const f of files) {
+    const blob = await compressImage(f, 1400, 0.72);
+    urls.push(await blobToDataUrl(blob));
+  }
+  return urls;
+}
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
 // ── 입찰 제안 (Postgres 함수 RPC 경유 — 고유번호 서버검증) ──────
 export async function submitProposal(payload) {
   const { error } = await sb.rpc("submit_proposal", {
